@@ -58,14 +58,16 @@ public class NationProvider extends ContentProvider {
                 cursor = database.query(
                         TABLE_NAME,         // the table name
                         projection,         // the columns to return
-                        selection,          // Selection: WHERE clause OR the condition
-                        selectionArgs,      // Selection arguments for the WHERE clause
+                        null,      // Selection: WHERE clause OR the condition
+                        null,   // Selection arguments for the WHERE clause
                         null,       // don't group the rows
                         null,        // don't filter by row groups
                         sortOrder           // the sort order
                 );
                 break;
             case COUNTRIES_ID:
+                selection = NationContract.NationEntry._ID + " = ? ";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
                 cursor = database.query(
                         TABLE_NAME,         // the table name
                         projection,         // the columns to return
