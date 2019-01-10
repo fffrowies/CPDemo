@@ -3,6 +3,7 @@ package com.fffrowies.cpdemo;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -87,8 +88,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         contentValues.put(NationEntry.COLUMN_COUNTRY, countryName);
         contentValues.put(NationEntry.COLUMN_CONTINENT, continentName);
 
-        long rowId = database.insert(NationEntry.TABLE_NAME, null, contentValues);
-        Log.i(TAG, "Items inserted in table with row id: " + rowId);
+		Uri uri = NationEntry.CONTENT_URI;
+		Uri uriRowInserted = getContentResolver().insert(uri, contentValues);
+		Log.i(TAG, "Items inserted at: " + uriRowInserted);
 	}
 
 	private void update() {
@@ -142,15 +144,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         String sortOrder = null;  // ascending or descending...
 
-        Cursor cursor = database.query(
-                NationEntry.TABLE_NAME,         // the table name
-                projection,                     // the columns to return
-                selection,                      // Selection: WHERE clause OR the condition
-                selectionArgs,                  // Selection arguments for the WHERE clause
-                null,                   // don't group the rows
-                null,                    // don't filter by row groups
-                sortOrder
-        );                     // the sort order
+        Uri uri = Uri.withAppendedPath(NationEntry.CONTENT_URI, rowId);
+        Cursor cursor = getContentResolver()
+                .query(uri, projection, selection, selectionArgs, sortOrder);
 
         if (cursor != null && cursor.moveToNext()) {
 
@@ -181,15 +177,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 	    String sortOrder = null;  // ascending or descending...
 
-	    Cursor cursor = database.query(
-	            NationEntry.TABLE_NAME,         // the table name
-                projection,                     // the columns to return
-                selection,                      // Selection: WHERE clause OR the condition
-                selectionArgs,                  // Selection arguments for the WHERE clause
-                null,                   // don't group the rows
-                null,                    // don't filter by row groups
-                sortOrder
-        );                     // the sort order
+        Uri uri = NationEntry.CONTENT_URI;
+        Cursor cursor = getContentResolver()
+                .query(uri, projection, selection, selectionArgs, sortOrder);
 
         if (cursor != null) {
 
