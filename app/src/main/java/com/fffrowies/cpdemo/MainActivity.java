@@ -2,7 +2,6 @@ package com.fffrowies.cpdemo;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +11,6 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.fffrowies.cpdemo.data.NationContract.NationEntry;
-import com.fffrowies.cpdemo.data.NationDbHelper;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -20,9 +18,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private Button btnInsert, btnUpdate, btnDelete, btnQueryRowById, btnDisplayAll;
 
 	private static final String TAG = MainActivity.class.getSimpleName();
-
-	private SQLiteDatabase database;
-	private NationDbHelper databaseHelper;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +42,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		btnDelete.setOnClickListener(this);
 		btnQueryRowById.setOnClickListener(this);
 		btnDisplayAll.setOnClickListener(this);
-
-		databaseHelper = new NationDbHelper(this);
-		database = databaseHelper.getWritableDatabase();    // READ/WRITE
 	}
 
 	@Override
@@ -104,14 +96,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	    String selection = NationEntry.COLUMN_COUNTRY + " = ?";
 	    String[] selectionArgs = { whereCountry };              // WHERE country = Japan (i.e.)
 
-	    int rowsUpdated = database.update(
-	            NationEntry.TABLE_NAME,
-                contentValues,
-                selection,
-                selectionArgs
-        );
-	    Log.i(TAG, "Number of rows updated: " + rowsUpdated);
-	}
+        Uri uri = NationEntry.CONTENT_URI;
+        Log.i(TAG, ""+uri);
+        int rowsUpdated = getContentResolver().update(uri, contentValues, selection, selectionArgs);
+        Log.i(TAG, "Number of rows updated: " + rowsUpdated);
+    }
 
 	private void delete() {
 
@@ -120,13 +109,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	    String selection = NationEntry.COLUMN_COUNTRY + " = ? ";
 	    String[] selectionArgs = { countryName };               // WHERE country = "Japan" (i.e.)
 
-	    int rowsDeleted = database.delete(
-	            NationEntry.TABLE_NAME,
-                selection,
-                selectionArgs
-        );
-	    Log.i(TAG, "Number of rows deleted: " + rowsDeleted);
-	}
+        Uri uri = Uri.withAppendedPath(NationEntry.CONTENT_URI, countryName);
+        Log.i(TAG, ""+uri);
+        int rowsDeleted = getContentResolver().delete(uri, selection, selectionArgs);
+        Log.i(TAG, "Number of rows deleted: " + rowsDeleted);
+    }
 
 	private void queryRowById() {
 
@@ -145,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String sortOrder = null;  // ascending or descending...
 
         Uri uri = Uri.withAppendedPath(NationEntry.CONTENT_URI, rowId);
+        Log.i(TAG, ""+uri);
         Cursor cursor = getContentResolver()
                 .query(uri, projection, selection, selectionArgs, sortOrder);
 
@@ -178,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	    String sortOrder = null;  // ascending or descending...
 
         Uri uri = NationEntry.CONTENT_URI;
+        Log.i(TAG, ""+uri);
         Cursor cursor = getContentResolver()
                 .query(uri, projection, selection, selectionArgs, sortOrder);
 
@@ -197,10 +186,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.i(TAG, str);
         }
 	}
-
-    @Override
-    protected void onDestroy() {
-	    database.close();           // Close database connection
-        super.onDestroy();
-    }
 }

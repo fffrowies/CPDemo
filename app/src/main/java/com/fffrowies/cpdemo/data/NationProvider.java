@@ -79,7 +79,7 @@ public class NationProvider extends ContentProvider {
                 );
                 break;
             default:
-                throw new IllegalArgumentException(TAG + " Insert unknown URI: " + uri);
+                throw new IllegalArgumentException(TAG + " Unknown URI: " + uri);
         }
 
         return cursor;
@@ -97,7 +97,7 @@ public class NationProvider extends ContentProvider {
             case COUNTRIES:
                 return insertRecord(uri, values, TABLE_NAME);
             default:
-                throw new IllegalArgumentException(TAG + "Insert unknown URI: " + uri);
+                throw new IllegalArgumentException(TAG + " Insert unknown URI: " + uri);
         }
     }
 
@@ -115,12 +115,57 @@ public class NationProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+
+        switch (uriMatcher.match(uri)) {
+            case COUNTRIES:                     // To delete whole table (not in view)
+                return deleteRecord(null, null, TABLE_NAME);
+            case COUNTRIES_ID:                  // To delete a row by ID (not in view)
+                selection = NationContract.NationEntry._ID + " = ? ";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                return deleteRecord(selection, selectionArgs, TABLE_NAME);
+            case COUNTRIES_COUNTRY_NAME:        // To delete a row by COUNTRY_NAME
+                selection = NationContract.NationEntry.COLUMN_COUNTRY + " = ? ";
+                selectionArgs = new String[] { uri.getLastPathSegment() };
+                return deleteRecord(selection, selectionArgs, TABLE_NAME);
+            default:
+                throw new IllegalArgumentException(TAG + " Unknown URI: " + uri);
+        }
+    }
+
+    private int deleteRecord(String selection, String[] selectionArgs, String tableName) {
+
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        int rowsDeleted = database.delete(tableName, selection, selectionArgs);
+        return rowsDeleted;
     }
 
     @Override
     public int update(Uri uri, ContentValues values,
                       String selection, String[] selectionArgs) {
-        return 0;
+
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+
+        switch (uriMatcher.match(uri)) {
+
+            case COUNTRIES:
+                return updateRecord(
+                        values, selection,selectionArgs, NationContract.NationEntry.TABLE_NAME);
+            default:
+                throw new IllegalArgumentException(TAG + " Unknown URI: " + uri);
+        }
+    }
+
+    private int updateRecord(
+            ContentValues values, String selection, String[] selectionArgs, String tableName) {
+
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+
+        int rowsUpdated = database.update(
+                tableName,
+                values,
+                selection,
+                selectionArgs
+        );
+        return rowsUpdated;
     }
 }
